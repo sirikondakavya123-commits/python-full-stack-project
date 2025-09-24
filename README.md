@@ -1,4 +1,4 @@
-<<<<<<< HEAD
+
 # Travel Diary 
 
 ## Project Description
