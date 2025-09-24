@@ -237,8 +237,6 @@ Add offline mode or local caching to allow access without an internet connection
 
 ### Support
 If you encounter any issues or have questions, please email: `sirikondakavya123@gmail.com`.
-
-=======
 # Travel Diary 
 
 ## Project Description
@@ -286,10 +284,10 @@ TRAVEL DAIRY/
 - Git(Push,cloneing)
 
 ### 1. clone or Download the project
-# Option 1: Clone with Git
-git clone <repository-url>
+### Option 1: Clone with Git
+git clone <https://github.com/sirikondakavya123-commits/python-full-stack-project>
 
-# Option 2:Download and extract the ZIP file
+### Option 2:Download and extract the ZIP file
 ### 2. Install Dependencies
 pip install -r requirements.txt
 
@@ -478,4 +476,3 @@ Add offline mode or local caching to allow access without an internet connection
 ### Support
 If you encounter any issues or have questions, please email: `sirikondakavya123@gmail.com`.
 
->>>>>>> c48af64801bc94609f7c2a5b9aafd1b33b925d1b
