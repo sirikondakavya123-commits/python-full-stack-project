@@ -125,12 +125,7 @@ def delete_destination(destination_id):
 def insert_category(category_name: str):
     """Insert a new category into the categories table"""
     response = supabase.table("categories").insert({"category_name": category_name}).execute()
-    if response.data:
-        print("✅ Category inserted:", response.data)
-        return response.data
-    else:
-        print("❌ Error inserting category:", response.error)
-        return None
+    return response.data
 
 # Example usage:
 # insert_category("Beach")
