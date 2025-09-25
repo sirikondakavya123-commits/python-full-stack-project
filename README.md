@@ -46,10 +46,10 @@ TRAVEL DAIRY/
 - Git(Push,cloneing)
 
 ### 1. clone or Download the project
-# Option 1: Clone with Git
+### Option 1: Clone with Git
 git clone <repository-url>
 
-# Option 2:Download and extract the ZIP file
+### Option 2:Download and extract the ZIP file
 ### 2. Install Dependencies
 pip install -r requirements.txt
 
@@ -125,10 +125,6 @@ The api will be available at `http://localhost:8501`
 
 
 ## Technical Details
-
-
-## Technical Details
-
 ### Architecture
 The Travel Bucket List project is designed with a frontend that handles user interaction and a backend database that stores user data and destinations. Each user has a private bucket list that they can manage securely.
 
