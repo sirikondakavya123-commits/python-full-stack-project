@@ -20,8 +20,8 @@ This project is built with **Python** and **Streamlit** for the frontend and use
 
 ## Project Structure
 
-TRAVEL DAIRY/
-|
+#TRAVEL DAIRY/
+#|
 |---src/              # core application logic
 |   |---logic.py      #Business logic and task
 |   |---db.py         #database operations
