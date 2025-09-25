@@ -117,4 +117,51 @@ def update_destination(
 def delete_destination(destination_id):
     response=supabase.table("destinations").delete().eq("id",destination_id).execute()
     return response.data
+#----------------
+#categories table operations
+#----------------
+
+#insert category
+def insert_category(category_name: str):
+    """Insert a new category into the categories table"""
+    response = supabase.table("categories").insert({"category_name": category_name}).execute()
+    if response.data:
+        print("✅ Category inserted:", response.data)
+        return response.data
+    else:
+        print("❌ Error inserting category:", response.error)
+        return None
+
+# Example usage:
+# insert_category("Beach")
+#get all categories
+def get_all_categories():
+    response=supabase.table("categories").select("*").execute()
+    return response.data
+#get category by id
+def get_category_by_id(category_id: int):
+    """Fetch a category from the categories table by ID"""
+    response = supabase.table("categories").select("*").eq("category_id", category_id).execute()
+    return response.data
+
+# Example usage:
+# category = get_category_by_id(1)
+# print(category)
+
+#update category by id
+def update_category(category_id: int, category_name: str):
+    """Update category name by ID"""
+    response = supabase.table("categories").update({"category_name": category_name}).eq("category_id", category_id).execute()
+    return response.data
+# Example usage:
+# update_category(1, "Mountain")
+
+#delete category by id
+def delete_category(category_id: int):
+    """Delete a category from the categories table by ID"""
+    response = supabase.table("categories").delete().eq("category_id", category_id).execute()
+    return response.data
+
+# Example usage:
+# delete_category(1)
 
