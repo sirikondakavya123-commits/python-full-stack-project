@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 
 # Travel Diary 
 
@@ -233,6 +234,8 @@ Add offline mode or local caching to allow access without an internet connection
 
 ### Support
 If you encounter any issues or have questions, please email: `sirikondakavya123@gmail.com`.
+=======
+>>>>>>> 122575246415d7b230ea3381846dba55f2654531
 # Travel Diary 
 
 ## Project Description
@@ -337,9 +340,6 @@ The app will own in your browser at `http://localhost:8501`
 cd api
 The api will be available at `http://localhost:8501`
 
-## how to use
-
-
 ## **How to Use**
 
 1. **Setup**
@@ -356,9 +356,6 @@ The api will be available at `http://localhost:8501`
 2. **Run the App**
    ```bash
    streamlit run streamlit_app.py
-
-
-## Technical Details
 
 
 ## Technical Details
@@ -440,9 +437,6 @@ Missing tables or migrations
 4.File Paths:
 Incorrect paths for assets or configuration files
 
-### Future Enhancements
-
-### Future Enhancements
 ### Future Enhancements
 
 **1. Social Login**
