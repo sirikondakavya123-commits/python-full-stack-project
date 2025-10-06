@@ -8,7 +8,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 # Import your db_manager
 from src import db_manager as db
 
-app = FastAPI(title="Travel Dairy API")
+app = FastAPI(title="Travel Diary API")
 
 # -----------------------
 # Models
@@ -86,5 +86,4 @@ def delete_destination(dest_id: int):
 
 @app.get("/")
 def home():
-    return {"message": "Welcome to Travel Dairy API"}
-
+    return {"message": "Welcome to Travel Diary API"}

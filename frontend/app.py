@@ -11,8 +11,8 @@ from src.logic import TravelDairy, Destination
 user_logic = TravelDairy()
 destination_logic = Destination()
 
-st.set_page_config(page_title="Travel Dairy", page_icon="✈️")
-st.title("✈️ Travel Dairy")
+st.set_page_config(page_title="Travel Diary", page_icon="✈️")
+st.title("✈️ Travel Diary")
 
 # ----------------------------
 # SESSION STATE
@@ -79,6 +79,8 @@ if st.session_state.user_name:
                 visited = st.checkbox("Visited", key="visited")
                 
                 if st.button("Add Destination", key="add_dest_btn"):
+                    if visited:
+                        st.balloons()
                     res = destination_logic.add_destination(
                         st.session_state.user_name, dest_name, country, visited, notes
                     )
