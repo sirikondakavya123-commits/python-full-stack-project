@@ -7,10 +7,22 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from src.logic import TravelDairy, Destination
 
+# ----------------------------
+# Safe rerun function
+# ----------------------------
+def rerun():
+    """Safe rerun for Streamlit across versions"""
+    if hasattr(st, "experimental_rerun"):
+        st.experimental_rerun()
+    else:
+        import sys
+        sys.exit()  # Forces Streamlit to reload script
+
 # Initialize classes
 user_logic = TravelDairy()
 destination_logic = Destination()
 
+# Set page config
 st.set_page_config(page_title="Travel Diary", page_icon="✈️")
 st.title("✈️ Travel Diary")
 
@@ -51,7 +63,7 @@ if not st.session_state.user_name:
                 st.session_state.user_name = name
                 st.session_state.page = "Destinations"
                 st.success("Signed in successfully!")
-                st.experimental_rerun()  # rerun to load Destinations page
+                rerun()  # updated here
             else:
                 st.error(res.get("Message"))
 
@@ -81,7 +93,6 @@ if st.session_state.user_name:
                 if st.button("Add Destination", key="add_dest_btn"):
                     if visited:
                         st.balloons()
-                        
                     res = destination_logic.add_destination(
                         st.session_state.user_name, dest_name, country, visited, notes
                     )
@@ -90,14 +101,14 @@ if st.session_state.user_name:
                         
                         # Hide the form
                         st.session_state.show_add_detailed = False
-                        st.experimental_rerun()
+                        rerun()  # updated here
                     else:
                         st.error(res.get("Message"))
             else:
                 # Show "Add Another Destination" button
                 if st.button("Add Another Destination"):
                     st.session_state.show_add_detailed = True
-                    st.experimental_rerun()
+                    rerun()  # updated here
 
         # View Destinations
         st.write("---")
@@ -138,7 +149,7 @@ if st.session_state.user_name:
                         )
                         if upd_res.get("Success"):
                             st.success("Destination updated successfully!")
-                            st.experimental_rerun()
+                            rerun()  # updated here
                         else:
                             st.error(upd_res.get("Message"))
 
@@ -147,14 +158,16 @@ if st.session_state.user_name:
                         del_res = destination_logic.delete_destination(dest_id)
                         if del_res.get("Success"):
                             st.warning("Destination deleted successfully!")
-                            st.experimental_rerun()
+                            rerun()  # updated here
                         else:
                             st.error(del_res.get("Message"))
+
+        # Logout button
         if st.button("🚪 Logout"):
+            st.success("Logged out successfully!")
             st.session_state.user_name = ""
             st.session_state.page = "Login"
-            st.experimental_rerun()
-            st.success("Logged out successfully!")
+            rerun()  # updated here
 
     # ---------------- PROFILE PAGE ----------------
     elif page == "Profile":
@@ -170,6 +183,3 @@ if st.session_state.user_name:
                     st.error(res.get("Message"))
             else:
                 st.error("Please enter a new password.")
-  
-    # ---------------- LOGOUT ----------------
-    
