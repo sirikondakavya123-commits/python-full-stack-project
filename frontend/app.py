@@ -23,8 +23,11 @@ user_logic = TravelDairy()
 destination_logic = Destination()
 
 # Set page config
-st.set_page_config(page_title="Travel Diary", page_icon="✈️")
+st.set_page_config(page_title="Travel Diary", page_icon="✈️ Travel Diary")
+
+# Always show project title at the top
 st.title("✈️ Travel Diary")
+
 
 # ----------------------------
 # SESSION STATE
@@ -37,35 +40,38 @@ if "show_add_detailed" not in st.session_state:
     st.session_state.show_add_detailed = True
 
 # ----------------------------
-# LOGIN / SIGNUP
+# LOGIN / SIGNUP with placeholder
 # ----------------------------
+login_placeholder = st.empty()  # placeholder for login form
+
 if not st.session_state.user_name:
-    st.subheader("Login / Register")
-    mode = st.radio("Select Option", ["Sign In", "Sign Up"], horizontal=True)
+    with login_placeholder.container():
+        st.subheader("Login / Register")
+        mode = st.radio("Select Option", ["Sign In", "Sign Up"], horizontal=True)
 
-    if mode == "Sign Up":
-        email = st.text_input("Email")
-        name = st.text_input("Username")
-        password = st.text_input("Password", type="password")
-        if st.button("Sign Up"):
-            res = user_logic.create_user(email, name, password)
-            if res.get("Success"):
-                st.success("Account created successfully! Please Sign In.")
-            else:
-                st.error(res.get("Message"))
+        if mode == "Sign Up":
+            email = st.text_input("Email")
+            name = st.text_input("Username")
+            password = st.text_input("Password", type="password")
+            if st.button("Sign Up"):
+                res = user_logic.create_user(email, name, password)
+                if res.get("Success"):
+                    st.success("Account created successfully! Please Sign In.")
+                else:
+                    st.error(res.get("Message"))
 
-    elif mode == "Sign In":
-        name = st.text_input("Username")
-        password = st.text_input("Password", type="password")
-        if st.button("Sign In"):
-            res = user_logic.authenticate_user(name, password)
-            if res.get("Success"):
-                st.session_state.user_name = name
-                st.session_state.page = "Destinations"
-                st.success("Signed in successfully!")
-                rerun()  # updated here
-            else:
-                st.error(res.get("Message"))
+        elif mode == "Sign In":
+            name = st.text_input("Username")
+            password = st.text_input("Password", type="password")
+            if st.button("Sign In"):
+                res = user_logic.authenticate_user(name, password)
+                if res.get("Success"):
+                    st.session_state.user_name = name
+                    st.session_state.page = "Destinations"
+                    st.success("Signed in successfully!")
+                    login_placeholder.empty()  # hides login form immediately
+                else:
+                    st.error(res.get("Message"))
 
 # ----------------------------
 # NAVIGATION AFTER LOGIN
@@ -98,17 +104,14 @@ if st.session_state.user_name:
                     )
                     if res.get("Success"):
                         st.success("Destination added successfully!")
-                        
-                        # Hide the form
                         st.session_state.show_add_detailed = False
-                        rerun()  # updated here
+                        rerun()
                     else:
                         st.error(res.get("Message"))
             else:
-                # Show "Add Another Destination" button
                 if st.button("Add Another Destination"):
                     st.session_state.show_add_detailed = True
-                    rerun()  # updated here
+                    rerun()
 
         # View Destinations
         st.write("---")
@@ -116,12 +119,11 @@ if st.session_state.user_name:
         res = destination_logic.get_all_destinations(st.session_state.user_name)
         if res.get("Success"):
             for idx, dest in enumerate(res.get("Data", [])):
-                dest_id = dest["destination_id"]  # Supabase primary key
+                dest_id = dest["destination_id"]
                 with st.expander(f"{dest['destination_name']} ({dest['country_name']})"):
                     st.write(f"**Visited:** {dest['is_visited']}")
                     st.write(f"**Notes:** {dest.get('notes', 'No notes')}")
 
-                    # Update Destination
                     new_name = st.text_input(
                         "New Destination Name",
                         value=dest['destination_name'],
@@ -149,25 +151,24 @@ if st.session_state.user_name:
                         )
                         if upd_res.get("Success"):
                             st.success("Destination updated successfully!")
-                            rerun()  # updated here
+                            rerun()
                         else:
                             st.error(upd_res.get("Message"))
 
-                    # Delete Destination
                     if st.button("🗑 Delete", key=f"del_btn_{dest_id}_{idx}"):
                         del_res = destination_logic.delete_destination(dest_id)
                         if del_res.get("Success"):
                             st.warning("Destination deleted successfully!")
-                            rerun()  # updated here
+                            rerun()
                         else:
                             st.error(del_res.get("Message"))
 
-        # Logout button
+        # Logout
         if st.button("🚪 Logout"):
             st.success("Logged out successfully!")
             st.session_state.user_name = ""
             st.session_state.page = "Login"
-            rerun()  # updated here
+            rerun()
 
     # ---------------- PROFILE PAGE ----------------
     elif page == "Profile":
