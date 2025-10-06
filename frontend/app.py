@@ -81,6 +81,7 @@ if st.session_state.user_name:
                 if st.button("Add Destination", key="add_dest_btn"):
                     if visited:
                         st.balloons()
+                        
                     res = destination_logic.add_destination(
                         st.session_state.user_name, dest_name, country, visited, notes
                     )
