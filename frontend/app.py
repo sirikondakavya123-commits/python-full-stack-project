@@ -22,10 +22,10 @@ def rerun():
 user_logic = TravelDairy()
 destination_logic = Destination()
 
-# ----------------------------
-# Page title
-# ----------------------------
+# Set page config
 st.set_page_config(page_title="Travel Diary", page_icon="✈️ Travel Diary")
+
+# Always show project title at the top
 st.title("✈️ Travel Diary")
 
 # ----------------------------
@@ -39,10 +39,9 @@ if "show_add_detailed" not in st.session_state:
     st.session_state.show_add_detailed = True
 
 # ----------------------------
-# LOGIN / SIGNUP with placeholders
+# LOGIN / SIGNUP with placeholder
 # ----------------------------
 login_placeholder = st.empty()  # placeholder for login form
-signup_placeholder = st.empty() # placeholder for signup form
 
 if not st.session_state.user_name:
     with login_placeholder.container():
@@ -50,10 +49,13 @@ if not st.session_state.user_name:
         mode = st.radio("Select Option", ["Sign In", "Sign Up"], horizontal=True)
 
         if mode == "Sign Up":
+            email = st.text_input("Email")
+            name = st.text_input("Username")
+            password = st.text_input("Password", type="password")
+
+            # ----------- Fixed Sign Up Button -----------
+            signup_placeholder = st.empty()
             with signup_placeholder.container():
-                email = st.text_input("Email", key="signup_email")
-                name = st.text_input("Username", key="signup_name")
-                password = st.text_input("Password", type="password", key="signup_pass")
                 if st.button("Sign Up"):
                     res = user_logic.create_user(email, name, password)
                     if res.get("Success"):
@@ -63,15 +65,15 @@ if not st.session_state.user_name:
                         st.error(res.get("Message"))
 
         elif mode == "Sign In":
-            email = st.text_input("Email", key="login_email")
-            password = st.text_input("Password", type="password", key="login_pass")
+            name = st.text_input("Username")
+            password = st.text_input("Password", type="password")
             if st.button("Sign In"):
-                res = user_logic.authenticate_user(email, password)  # replace with authenticate_user_by_email if you added
+                res = user_logic.authenticate_user(name, password)
                 if res.get("Success"):
-                    st.session_state.user_name = res.get("Data", {}).get("user_name", email)
+                    st.session_state.user_name = name
                     st.session_state.page = "Destinations"
                     st.success("Signed in successfully!")
-                    login_placeholder.empty()  # hide login form immediately
+                    login_placeholder.empty()  # hides login form immediately
                 else:
                     st.error(res.get("Message"))
 
@@ -91,27 +93,30 @@ if st.session_state.user_name:
         st.subheader(f"🌍 {st.session_state.user_name}'s Destinations")
 
         # Add Destination
-        add_dest_placeholder = st.empty()
-        with add_dest_placeholder.container():
+        with st.expander("➕ Add New Destination"):
             if st.session_state.show_add_detailed:
                 dest_name = st.text_input("Destination Name", key="dest_name")
                 country = st.text_input("Country", key="country_name")
                 notes = st.text_area("Notes", key="notes")
                 visited = st.checkbox("Visited", key="visited")
-                
-                if st.button("Add Destination", key="add_dest_btn"):
-                    if visited:
-                        st.balloons()
-                    res = destination_logic.add_destination(
-                        st.session_state.user_name, dest_name, country, visited, notes
-                    )
-                    if res.get("Success"):
-                        st.success("Destination added successfully!")
-                        st.session_state.show_add_detailed = False
-                        add_dest_placeholder.empty()
-                        rerun()
-                    else:
-                        st.error(res.get("Message"))
+
+                # ----------- Fixed Add Destination Button -----------
+                add_dest_placeholder = st.empty()
+                with add_dest_placeholder.container():
+                    if st.button("Add Destination", key="add_dest_btn"):
+                        if visited:
+                            st.balloons()
+                        res = destination_logic.add_destination(
+                            st.session_state.user_name, dest_name, country, visited, notes
+                        )
+                        if res.get("Success"):
+                            st.success("Destination added successfully!")
+                            st.session_state.show_add_detailed = False
+                            add_dest_placeholder.empty()  # clear the form immediately
+                            rerun()
+                        else:
+                            st.error(res.get("Message"))
+
             else:
                 if st.button("Add Another Destination"):
                     st.session_state.show_add_detailed = True
@@ -167,14 +172,14 @@ if st.session_state.user_name:
                         else:
                             st.error(del_res.get("Message"))
 
-        # Logout
+        # ----------- Fixed Logout Button -----------
         logout_placeholder = st.empty()
         with logout_placeholder.container():
             if st.button("🚪 Logout"):
                 st.success("Logged out successfully!")
                 st.session_state.user_name = ""
                 st.session_state.page = "Login"
-                logout_placeholder.empty()
+                logout_placeholder.empty()  # remove button immediately
                 rerun()
 
     # ---------------- PROFILE PAGE ----------------
