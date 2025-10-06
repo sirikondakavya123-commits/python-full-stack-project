@@ -8,24 +8,15 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from src.logic import TravelDairy, Destination
 
 # ----------------------------
-# Safe rerun function
-# ----------------------------
-def rerun():
-    """Safe rerun for Streamlit across versions"""
-    if hasattr(st, "experimental_rerun"):
-        st.experimental_rerun()
-    else:
-        import sys
-        sys.exit()  # Forces Streamlit to reload script
-
 # Initialize classes
+# ----------------------------
 user_logic = TravelDairy()
 destination_logic = Destination()
 
-# Set page config
+# ----------------------------
+# Page config
+# ----------------------------
 st.set_page_config(page_title="Travel Diary", page_icon="✈️ Travel Diary")
-
-# Always show project title at the top
 st.title("✈️ Travel Diary")
 
 # ----------------------------
@@ -37,43 +28,52 @@ if "page" not in st.session_state:
     st.session_state.page = "Login"
 if "show_add_detailed" not in st.session_state:
     st.session_state.show_add_detailed = True
+if "destinations" not in st.session_state:
+    st.session_state.destinations = []
 
 # ----------------------------
-# LOGIN / SIGNUP with placeholder
+# Safe rerun
 # ----------------------------
-login_placeholder = st.empty()  # placeholder for login form
+def rerun():
+    if hasattr(st, "experimental_rerun"):
+        st.experimental_rerun()
+    else:
+        import sys
+        sys.exit()
 
+# ----------------------------
+# LOGIN / SIGNUP
+# ----------------------------
 if not st.session_state.user_name:
-    with login_placeholder.container():
-        st.subheader("Login / Register")
-        mode = st.radio("Select Option", ["Sign In", "Sign Up"], horizontal=True)
+    st.subheader("Login / Register")
+    mode = st.radio("Select Option", ["Sign In", "Sign Up"], horizontal=True)
 
-        if mode == "Sign Up":
-            email = st.text_input("Email")
-            name = st.text_input("Username")
-            password = st.text_input("Password", type="password")
+    if mode == "Sign Up":
+        email = st.text_input("Email", key="signup_email")
+        name = st.text_input("Username", key="signup_name")
+        password = st.text_input("Password", type="password", key="signup_pass")
 
-            # ----------- Fixed Sign Up Button -----------
-            signup_placeholder = st.empty()
-            with signup_placeholder.container():
-                if st.button("Sign Up"):
-                    res = user_logic.create_user(email, name, password)
-                    if res.get("Success"):
-                        st.success("Account created successfully! Please Sign In.")
-                        signup_placeholder.empty()  # remove form immediately
-                    else:
-                        st.error(res.get("Message"))
+        if st.button("Sign Up"):
+            with st.spinner("Creating account..."):
+                res = user_logic.create_user(email, name, password)
+                if res.get("Success"):
+                    st.success("Account created successfully! Please Sign In.")
+                else:
+                    st.error(res.get("Message"))
 
-        elif mode == "Sign In":
-            name = st.text_input("Username")
-            password = st.text_input("Password", type="password")
-            if st.button("Sign In"):
+    elif mode == "Sign In":
+        name = st.text_input("Username", key="signin_name")
+        password = st.text_input("Password", type="password", key="signin_pass")
+
+        if st.button("Sign In"):
+            with st.spinner("Signing in..."):
                 res = user_logic.authenticate_user(name, password)
                 if res.get("Success"):
                     st.session_state.user_name = name
                     st.session_state.page = "Destinations"
-                    st.success("Signed in successfully!")
-                    login_placeholder.empty()  # hides login form immediately
+                    # Load destinations immediately
+                    st.session_state.destinations = destination_logic.get_all_destinations(name).get("Data", [])
+                    rerun()
                 else:
                     st.error(res.get("Message"))
 
@@ -100,99 +100,109 @@ if st.session_state.user_name:
                 notes = st.text_area("Notes", key="notes")
                 visited = st.checkbox("Visited", key="visited")
 
-                # ----------- Fixed Add Destination Button -----------
-                add_dest_placeholder = st.empty()
-                with add_dest_placeholder.container():
-                    if st.button("Add Destination", key="add_dest_btn"):
-                        if visited:
-                            st.balloons()
+                if st.button("Add Destination", key="add_dest_btn"):
+                    with st.spinner("Adding destination..."):
                         res = destination_logic.add_destination(
                             st.session_state.user_name, dest_name, country, visited, notes
                         )
                         if res.get("Success"):
                             st.success("Destination added successfully!")
                             st.session_state.show_add_detailed = False
-                            add_dest_placeholder.empty()  # clear the form immediately
-                            rerun()
+                            # Update session destinations immediately
+                            st.session_state.destinations.append({
+                                "destination_id": res["Data"]["destination_id"],
+                                "destination_name": dest_name,
+                                "country_name": country,
+                                "notes": notes,
+                                "is_visited": visited
+                            })
                         else:
                             st.error(res.get("Message"))
-
             else:
                 if st.button("Add Another Destination"):
                     st.session_state.show_add_detailed = True
-                    rerun()
 
         # View Destinations
         st.write("---")
         st.write("📋 Your Destinations:")
-        res = destination_logic.get_all_destinations(st.session_state.user_name)
-        if res.get("Success"):
-            for idx, dest in enumerate(res.get("Data", [])):
-                dest_id = dest["destination_id"]
-                with st.expander(f"{dest['destination_name']} ({dest['country_name']})"):
-                    st.write(f"**Visited:** {dest['is_visited']}")
-                    st.write(f"**Notes:** {dest.get('notes', 'No notes')}")
 
-                    new_name = st.text_input(
-                        "New Destination Name",
-                        value=dest['destination_name'],
-                        key=f"upd_name_{dest_id}_{idx}"
-                    )
-                    new_country = st.text_input(
-                        "New Country",
-                        value=dest['country_name'],
-                        key=f"upd_country_{dest_id}_{idx}"
-                    )
-                    new_notes = st.text_area(
-                        "New Notes",
-                        value=dest.get('notes', ''),
-                        key=f"upd_notes_{dest_id}_{idx}"
-                    )
-                    new_visited = st.checkbox(
-                        "Visited",
-                        value=dest['is_visited'],
-                        key=f"upd_visited_{dest_id}_{idx}"
-                    )
+        user_destinations = st.session_state.destinations
 
-                    if st.button("Update", key=f"upd_btn_{dest_id}_{idx}"):
+        for idx, dest in enumerate(user_destinations):
+            dest_id = dest["destination_id"]
+            with st.expander(f"{dest['destination_name']} ({dest['country_name']})"):
+                st.write(f"**Visited:** {dest['is_visited']}")
+                st.write(f"**Notes:** {dest.get('notes', 'No notes')}")
+
+                new_name = st.text_input(
+                    "New Destination Name",
+                    value=dest['destination_name'],
+                    key=f"upd_name_{dest_id}_{idx}"
+                )
+                new_country = st.text_input(
+                    "New Country",
+                    value=dest['country_name'],
+                    key=f"upd_country_{dest_id}_{idx}"
+                )
+                new_notes = st.text_area(
+                    "New Notes",
+                    value=dest.get('notes', ''),
+                    key=f"upd_notes_{dest_id}_{idx}"
+                )
+                new_visited = st.checkbox(
+                    "Visited",
+                    value=dest['is_visited'],
+                    key=f"upd_visited_{dest_id}_{idx}"
+                )
+
+                if st.button("Update", key=f"upd_btn_{dest_id}_{idx}"):
+                    with st.spinner("Updating destination..."):
                         upd_res = destination_logic.update_destination(
                             dest_id, new_name, new_country, new_visited, new_notes
                         )
                         if upd_res.get("Success"):
                             st.success("Destination updated successfully!")
-                            rerun()
+                            # Update session destinations immediately
+                            st.session_state.destinations[idx] = {
+                                "destination_id": dest_id,
+                                "destination_name": new_name,
+                                "country_name": new_country,
+                                "notes": new_notes,
+                                "is_visited": new_visited
+                            }
                         else:
                             st.error(upd_res.get("Message"))
 
-                    if st.button("🗑 Delete", key=f"del_btn_{dest_id}_{idx}"):
+                if st.button("🗑 Delete", key=f"del_btn_{dest_id}_{idx}"):
+                    with st.spinner("Deleting destination..."):
                         del_res = destination_logic.delete_destination(dest_id)
                         if del_res.get("Success"):
                             st.warning("Destination deleted successfully!")
-                            rerun()
+                            # Remove from session destinations immediately
+                            st.session_state.destinations.pop(idx)
+                            break  # Stop loop to avoid index issues
                         else:
                             st.error(del_res.get("Message"))
 
-        # ----------- Fixed Logout Button -----------
-        logout_placeholder = st.empty()
-        with logout_placeholder.container():
-            if st.button("🚪 Logout"):
-                st.success("Logged out successfully!")
-                st.session_state.user_name = ""
-                st.session_state.page = "Login"
-                logout_placeholder.empty()  # remove button immediately
-                rerun()
+        # Logout button
+        if st.button("🚪 Logout"):
+            st.success("Logged out successfully!")
+            st.session_state.user_name = ""
+            st.session_state.page = "Login"
+            st.session_state.destinations = []
+            rerun()
 
     # ---------------- PROFILE PAGE ----------------
     elif page == "Profile":
         st.subheader(f"👤 Profile: {st.session_state.user_name}")
-
         new_password = st.text_input("Change Password", type="password", key="profile_pass")
         if st.button("Update Password"):
             if new_password:
-                res = user_logic.update_user(st.session_state.user_name, new_password=new_password)
-                if res.get("Success"):
-                    st.success("Password updated successfully!")
-                else:
-                    st.error(res.get("Message"))
+                with st.spinner("Updating password..."):
+                    res = user_logic.update_user(st.session_state.user_name, new_password=new_password)
+                    if res.get("Success"):
+                        st.success("Password updated successfully!")
+                    else:
+                        st.error(res.get("Message"))
             else:
                 st.error("Please enter a new password.")
